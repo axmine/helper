@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es5",
+    "lib": ["DOM", "ES2015", "ScriptHost", "ES5", "ES2016.Array.Include"],
+    "declaration": true
+    // "declaration": true,
+    // "allowJs": false
+  },
+  "include": [
+    // "./src/*"
+    "./src/index.ts"
+  ],
+  "exclude": [
+    "./node_modules/"
+  ]
+}
