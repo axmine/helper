@@ -1,9 +1,15 @@
-import { TInitOption, TFormatKeys, TErrorMessage } from './Axios.dto'
+import {
+  TInitOption,
+  TInitOptionCustomCode,
+  TFormatKeys,
+  TErrorMessage,
+} from './Axios.dto'
 
 export const initOption: TInitOption = {
   timeout: 1000,
   baseURL: '/',
   jsonData: false,
+  reTry: 0,
   formatKeys: {
     code: 'code',
     result: 'result',
@@ -24,5 +30,11 @@ export const initOption: TInitOption = {
     600: '响应超时，请确保您的设备已正常联网',
     601: '你的设备已离线，请确保你的设备已联网（601）',
     700: '请求发生错误，请稍候再试'
-  } as TErrorMessage
+  } as TErrorMessage,
+  customCode: {
+    success: [0, 2000, 2010],
+    tokenError: [4010],
+    tokenFresh: [4020],
+    authError: [4030, 4050]
+  } as TInitOptionCustomCode,
 }
