@@ -14,7 +14,7 @@
 // import { camelCase } from './utils/camelCase'
 
 // import { setStore } from './utils/mutations'
-import Axios from './helper/axios/Axios'
+import { Axios } from './helper/axios'
 
 export default {
   Axios
