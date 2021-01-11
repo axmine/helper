@@ -15,8 +15,8 @@ export default class Axios {
     message: ''
   }
 
-  constructor (initConfig = initOption) {
-    this.init = Object.assign(initOption, initConfig)
+  constructor (config: TInitOption) {
+    this.init = Object.assign(initOption, config)
 
     this.http = axios.create({
       baseURL: this.init.baseURL,
@@ -52,7 +52,7 @@ export default class Axios {
         if (response) {
           Object.assign(data, this.transformResponseData(response, TTransformData.ERROR))
         } else {
-          const statusCode = JSON.stringify(error).indexOf('timeout of') > -1 ? 600 : 504
+          const statusCode = JSON.stringify(error).indexOf('timeout of') > -1 ? 504 : 502
           Object.assign(data, { statusCode, message: this.init.errorMessage[statusCode] })
         }
         return Promise.reject(data)
@@ -68,7 +68,7 @@ export default class Axios {
 
   // 转换响应数据格式
   private transformResponseData (response: any, type: TTransformData): TResultData{
-    let statusCode = response?.status || 700
+    let statusCode = response?.status || 500
     const initResult = this.getResultData()
     const res = Object.assign(initResult, { statusCode })
     const { data } = response
@@ -79,13 +79,13 @@ export default class Axios {
       code = isNaN(code) ? -1 : code * 1
       let message = response.data[this.init.formatKeys.message] || ''
       if (type === 'error') {
-        code = this.init.errorMessage[code] ? code : 700
+        code = this.init.errorMessage[code] ? code : 500
         message = message || this.init.errorMessage[code] || '请求发生错误，请联系工程师' + `(${statusCode})`
       }
       Object.assign(res, { statusCode, code, result, message })
     } else {
     // 2. 后端返回的数据不规范，将 statusCode 定义为 500
-      statusCode = 500
+      statusCode = 502
       Object.assign(res, { statusCode, message: `响应错误，未获取预期数据(${statusCode})` })
     }
     return res
@@ -108,15 +108,19 @@ export default class Axios {
   }
 
   // 发起请求
+  /**
+   * 发起ajax请求
+   * @param url 请求的url地址
+   * @param data 请求体参数
+   * @param config 请求参数配置
+   */
   async request (url: string, data: JSON, config?: TRequestConfig) :Promise<TResultData> {
-    const conf: TRequestConfig = Object.assign({
-      method: 'get',
-      option: {},
-      showNotify: false, // 是否显示notify
-      reTry: this.init.reTry // 请求失败重试次数
-    }, config)
+    const conf: TRequestConfig = Object.assign({ method: 'get', option: {} }, config)
     const result = await this.callRequest(url, data, conf)
-
+    const success = this.init.customCode.success.includes(result.code)
+    if (success) {
+      result.code = 0
+    }
     return result
   }
 }

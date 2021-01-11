@@ -11,17 +11,14 @@ export class TErrorMessage {
 }
 
 export class TInitOptionCustomCode {
-  success?: Array<number>;
-  tokenError?: Array<number>;
-  tokenFresh?: Array<number>;
-  authError?: Array<number>;
+  success: Array<number>;
+  [key: string]: Array<number>;
 }
 // Axios 初始化参数
 export class TInitOption {
   timeout?: number;
   baseURL?: string;
   jsonData?: boolean;
-  reTry: number;
   formatKeys?: TFormatKeys;
   customCode?: TInitOptionCustomCode;
   errorMessage?: TErrorMessage;
@@ -59,7 +56,7 @@ export class TRequestConfigOption {
 // 发请http请求时的配置参数
 export class TRequestConfig {
   method?: TRequestConfigMethod;
-  showNotify?: boolean;
+  // showNotify?: boolean;
   option?: TRequestConfigOption;
   [key: string]: any;
 }

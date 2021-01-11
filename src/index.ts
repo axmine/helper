@@ -1,5 +1,5 @@
 // time format
-import { formatDate } from './utils/formatDate'
+// import { formatDate } from './utils/formatDate'
 // get variable's type
 // import { getType } from './utils/getType'
 // // cookie
@@ -14,8 +14,10 @@ import { formatDate } from './utils/formatDate'
 // import { camelCase } from './utils/camelCase'
 
 // import { setStore } from './utils/mutations'
+import Axios from './helper/axios/Axios'
 
 export default {
+  Axios
   // formatDate,
   // getType,
   // store: new Store(),
