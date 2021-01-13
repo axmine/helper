@@ -18,6 +18,7 @@ export interface ResponseType {
   headers: Record<string, any>;
   status: number;
   statusText: string;
+  config?: Record<string, any>;
   data: DataType;
 }
 export interface DataType {
@@ -53,39 +54,51 @@ export class Axios {
 
   // 初始化参数
   private init: OptionType = {
-    timeout: 1000,
-    baseURL: '/',
     jsonData: true,
     formatKeys: { code: 'code', result: 'result', message: 'message' } as FormatKeysType,
+    successCode: [],
+    baseURL: '/',
+    timeout: 1000,
     errorMessage: {
+      800: '发起请求出现错误（800）',
+      801: '网络异常，无法接收数据，请重试（801）',
+      802: '数据接收异常，请联系工程师（802）',
+
       400: '请求发生错误，请联系工程师（400）',
       401: '登陆信息失效，请重新登录（401）', // token无效，需要登录
       402: '您的登录信息已过期（402）', // token过期，请求刷新token
       403: '你没有足够的权限访问该资源（403）', // token权限不足，访问被禁止
-      404: '请求地址不存在，无法找到对应的资源（404）',
+      404: '请求的资源不存在（404）',
       405: '服务器拒绝了你的请求（405）', // 禁用请求中指定的方法
+
       500: '请求错误，请联系工程师（500）', // 服务器遇到错误，无法完成请求
       501: '请求异常，请联系工程师（501）', // 服务器不具备完成请求的功能
       502: '数据异常，请联系工程师（502）', // 从服务器收到无效的响应
       503: '服务繁忙，请稍候再试（503）', // 服务器超载或停机维护，暂时状态
       504: '连接超时，请稍候再试（504）', // 未接收到服务器的响应
       505: '不受支持的请求，请联系工程师（505）' // http版本不受支持
-    },
-    successCode: []
+    }
   }
 
-  // 一、初始化
+  // 一、构造开始
   constructor (option?: OptionType) {
-    Object.assign(this.init, option)
-    // 初始化响应结果, 以提供规范的响应结果
+    // 1. 设置初始参数
+    if (option?.errorMessage) { Object.assign(this.init.errorMessage, option.errorMessage) }
+    if (option?.formatKeys) { this.init.formatKeys = option.formatKeys }
+    if (option?.successCode) { this.init.successCode = option.successCode }
+    this.init.jsonData = option?.jsonData || false
+    this.init.baseURL = option?.baseURL || '/'
+    this.init.timeout = option?.timeout || 200000
+
+    // 2. 初始响应结果, 以提供规范的响应格式
     this.responseData = { headers: {}, data: this.resultData, status: 200, statusText: '' }
-    // 默认的请求数据转换
-    const config = this.init.jsonData ? {} : {
-      transformRequest: [(data: Record<string, any>) => { return Qs.stringify(data) }]
-    }
-    const timeout = this.init.timeout || 10000
-    const baseURL = this.init.baseURL || '/'
-    this.http = axios.create(Object.assign({ baseURL, timeout }, config))
+
+    // 3. 创建axios实例
+    //    设置请求data是否进行转换
+    const opt = this.init.jsonData ? {} : { transformRequest: [(data: Record<string, any>) => { return Qs.stringify(data) }] }
+    const { baseURL, timeout } = this.init
+    this.http = axios.create(Object.assign({ baseURL, timeout }, opt))
+    // 4. 启用拦截器
     this.setInterceptor()
   }
 
@@ -101,10 +114,11 @@ export class Axios {
     this.http.interceptors.request.use((config) => {
       return config
     }, (error) => {
+      const errMsg = this.init.errorMessage || {}
       const res = this.getResponseData()
-      res.status = 505
+      res.status = 800
       res.statusText = JSON.stringify(error)
-      res.data.message = '请求出错了'
+      res.data.message = errMsg[res.status] || `发起请求出错了（${res.status}）`
       return Promise.reject(res)
     })
 
@@ -126,11 +140,12 @@ export class Axios {
         } else {
         // 没有响应对象
           const errorText = JSON.stringify(error) || ''
-          const status = errorText.indexOf('timeout of') > -1 ? 504 : 502
+          const status = errorText.indexOf('timeout of') > -1 ? 801 : 802
           const errorMessage = this.init?.errorMessage || {}
           Object.assign(data, { message: errorMessage[status] })
           Object.assign(responseData, { data, status })
         }
+        responseData.config = error?.config || {}
         return Promise.reject(responseData)
       }
     )
@@ -183,6 +198,7 @@ export class Axios {
       res.headers = response.headers
       res.status = response.status
       res.statusText = response.statusText
+      res.config = response.config
       return res
     } catch (error) {
       return error
