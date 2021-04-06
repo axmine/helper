@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Yocss/helper.git"
+    "url": "git+https://github.com/axmine/helper.git"
   },
   "keywords": [
     "js-helper",
@@ -19,9 +19,9 @@
   "author": "Yocss",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Yocss/helper/issues"
+    "url": "https://github.com/Yocss/axmine/issues"
   },
-  "homepage": "https://github.com/Yocss/helper#readme",
+  "homepage": "https://github.com/Yocss/axmine#readme",
   "devDependencies": {
     "@babel/core": "^7.6.4",
     "@babel/preset-env": "^7.6.3",

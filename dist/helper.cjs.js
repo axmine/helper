@@ -4279,75 +4279,68 @@ var lib = {
     parse: parse$1,
     stringify: stringify_1
 };
-
-// 转换类型分为: 响应成功时， 响应失败时
-var TTransformData;
-(function (TTransformData) {
-    TTransformData["SUCCESS"] = "success";
-    TTransformData["ERROR"] = "error";
-})(TTransformData || (TTransformData = {}));
-var TRequestConfigMethod;
-(function (TRequestConfigMethod) {
-    TRequestConfigMethod["GET"] = "get";
-    TRequestConfigMethod["POST"] = "post";
-    TRequestConfigMethod["PUT"] = "put";
-    TRequestConfigMethod["PATCH"] = "patch";
-    TRequestConfigMethod["DELETE"] = "delete";
-    TRequestConfigMethod["HEAD"] = "head";
-    TRequestConfigMethod["OPTIONS"] = "options"; // 获取信息，如资源的可更改属性
-})(TRequestConfigMethod || (TRequestConfigMethod = {}));
-
-var initOption = {
-    timeout: 1000,
-    baseURL: '/',
-    jsonData: false,
-    formatKeys: {
-        code: 'code',
-        result: 'result',
-        message: 'message'
-    },
-    errorMessage: {
-        400: '请求发生错误，请联系工程师（400）',
-        401: '登陆信息失效，请重新登录（401）',
-        402: '您的登录信息已过期（402）',
-        403: '你没有足够的权限访问该资源（403）',
-        404: '程序君找不到要请求的资源（404）',
-        405: '服务器拒绝了你的请求（405）',
-        500: '请求错误，请联系工程师（500）',
-        501: '请求异常，请联系工程师（501）',
-        502: '数据异常，请联系工程师（502）',
-        503: '服务繁忙，请稍候再试（503）',
-        504: '连接超时，请稍候再试（504）',
-        505: '不受支持的请求，请联系工程师（505）' // http版本不受支持
-        // 600: '响应超时，请确保您的设备已正常联网',
-        // 601: '你的设备已离线，请确保你的设备已联网（601）',
-        // 700: '请求发生错误，请稍候再试'
-    },
-    customCode: {
-        success: [0, 2000, 2010, 2040]
-    },
-};
+var lib_3 = lib.stringify;
 
 var Axios$1 = /** @class */ (function () {
-    function Axios(config) {
-        // private formatKeys: TFormatKeys
+    // 一、构造开始
+    function Axios(option) {
+        // 返回结果
         this.resultData = {
-            statusCode: 500,
             code: -1,
             result: {},
             message: ''
         };
-        this.init = Object.assign(initOption, config);
-        this.http = axios$1.create({
-            baseURL: this.init.baseURL,
-            timeout: this.init.timeout,
-            transformRequest: this.init.jsonData ? [function (data) { return lib.stringify(data); }] : []
-        });
-        this.setInterceptor;
+        // 初始化参数
+        this.init = {
+            jsonData: true,
+            formatKeys: { code: 'code', result: 'result', message: 'message' },
+            successCode: [],
+            baseURL: '/',
+            timeout: 1000,
+            errorMessage: {
+                800: '发起请求出现错误（800）',
+                801: '网络异常，无法接收数据，请重试（801）',
+                802: '数据接收异常，请联系工程师（802）',
+                400: '请求发生错误，请联系工程师（400）',
+                401: '登陆信息失效，请重新登录（401）',
+                402: '您的登录信息已过期（402）',
+                403: '你没有足够的权限访问该资源（403）',
+                404: '请求的资源不存在（404）',
+                405: '服务器拒绝了你的请求（405）',
+                500: '请求错误，请联系工程师（500）',
+                501: '请求异常，请联系工程师（501）',
+                502: '数据异常，请联系工程师（502）',
+                503: '服务繁忙，请稍候再试（503）',
+                504: '连接超时，请稍候再试（504）',
+                505: '不受支持的请求，请联系工程师（505）' // http版本不受支持
+            }
+        };
+        // 1. 设置初始参数
+        if (option === null || option === void 0 ? void 0 : option.errorMessage) {
+            Object.assign(this.init.errorMessage, option.errorMessage);
+        }
+        if (option === null || option === void 0 ? void 0 : option.formatKeys) {
+            this.init.formatKeys = option.formatKeys;
+        }
+        if (option === null || option === void 0 ? void 0 : option.successCode) {
+            this.init.successCode = option.successCode;
+        }
+        this.init.jsonData = (option === null || option === void 0 ? void 0 : option.jsonData) || false;
+        this.init.baseURL = (option === null || option === void 0 ? void 0 : option.baseURL) || '/';
+        this.init.timeout = (option === null || option === void 0 ? void 0 : option.timeout) || 200000;
+        // 2. 初始响应结果, 以提供规范的响应格式
+        this.responseData = { headers: {}, data: this.resultData, status: 200, statusText: '' };
+        // 3. 创建axios实例
+        //    设置请求data是否进行转换
+        var opt = this.init.jsonData ? {} : { transformRequest: [function (data) { return lib_3(data); }] };
+        var _a = this.init, baseURL = _a.baseURL, timeout = _a.timeout;
+        this.http = axios$1.create(Object.assign({ baseURL: baseURL, timeout: timeout }, opt));
+        // 4. 启用拦截器
+        this.setInterceptor();
     }
-    Axios.prototype.getResultData = function () {
-        return this.resultData;
-    };
+    Axios.prototype.getResultData = function () { return this.resultData; };
+    Axios.prototype.getResponseData = function () { return this.responseData; };
+    Axios.prototype.getDataType = function (v) { return Object.prototype.toString.call(v).slice(8, -1).toLowerCase(); };
     // 定义拦截器
     Axios.prototype.setInterceptor = function () {
         var _this = this;
@@ -4355,77 +4348,99 @@ var Axios$1 = /** @class */ (function () {
         this.http.interceptors.request.use(function (config) {
             return config;
         }, function (error) {
-            return Promise.reject(error);
+            var errMsg = _this.init.errorMessage || {};
+            var res = _this.getResponseData();
+            res.status = 800;
+            res.statusText = JSON.stringify(error);
+            res.data.message = errMsg[res.status] || "\u53D1\u8D77\u8BF7\u6C42\u51FA\u9519\u4E86\uFF08" + res.status + "\uFF09";
+            return Promise.reject(res);
         });
         // 2. 响应拦截
         this.http.interceptors.response.use(function (response) {
             // 处理正常响应
-            response.data = _this.transformResponseData(response, TTransformData.SUCCESS);
-            return response;
+            var res = _this.transformResponseData(response, 'success');
+            return Object.assign(response, res);
         }, function (error) {
+            var _a;
             // 处理http状态码级别的错误
             var response = error.response;
             var data = _this.getResultData();
+            var responseData = _this.getResponseData();
             if (response) {
-                Object.assign(data, _this.transformResponseData(response, TTransformData.ERROR));
+                // 有响应对象
+                Object.assign(responseData, _this.transformResponseData(response, 'error'));
             }
             else {
-                var statusCode = JSON.stringify(error).indexOf('timeout of') > -1 ? 504 : 502;
-                Object.assign(data, { statusCode: statusCode, message: _this.init.errorMessage[statusCode] });
+                // 没有响应对象
+                var errorText = JSON.stringify(error) || '';
+                var status = errorText.indexOf('timeout of') > -1 ? 801 : 802;
+                var errorMessage = ((_a = _this.init) === null || _a === void 0 ? void 0 : _a.errorMessage) || {};
+                Object.assign(data, { message: errorMessage[status] });
+                Object.assign(responseData, { data: data, status: status });
             }
-            return Promise.reject(data);
+            responseData.config = (error === null || error === void 0 ? void 0 : error.config) || {};
+            return Promise.reject(responseData);
         });
-    };
-    // 判断数据类型
-    Axios.prototype.getDataType = function (v) {
-        var t = Object.prototype.toString.call(v);
-        return t.slice(8, -1).toLocaleLowerCase();
     };
     // 转换响应数据格式
     Axios.prototype.transformResponseData = function (response, type) {
-        var statusCode = (response === null || response === void 0 ? void 0 : response.status) || 500;
-        var initResult = this.getResultData();
-        var res = Object.assign(initResult, { statusCode: statusCode });
+        var resData = this.getResultData();
+        var res = this.getResponseData();
+        res.status = (response === null || response === void 0 ? void 0 : response.status) || 500;
+        res.headers = response.headers || {};
+        res.statusText = response.statusText || '';
         var data = response.data;
-        // 1. 处理后端按规范返回的数据
-        if (this.getDataType(data) === 'object') {
-            var result = response.data[this.init.formatKeys.result] || {};
-            var code = response.data[this.init.formatKeys.code];
-            code = isNaN(code) ? -1 : code * 1;
-            var message = response.data[this.init.formatKeys.message] || '';
-            if (type === 'error') {
-                code = this.init.errorMessage[code] ? code : 500;
-                message = message || this.init.errorMessage[code] || '请求发生错误，请联系工程师' + ("(" + statusCode + ")");
+        if (data) {
+            // 1. 后端有返回的数据
+            var errorMessage = this.init.errorMessage || {};
+            var code = -1;
+            var message = errorMessage[res.status] || '请求发生错误，请联系工程师' + ("(" + res.status + ")");
+            var result = {};
+            if (this.getDataType(data) === 'object') {
+                var k = this.init.formatKeys;
+                code = response.data[k.code];
+                code = isNaN(code) ? -1 : code * 1;
+                result = response.data[k.result] || {};
+                message = response.data[k.message] || '';
             }
-            Object.assign(res, { statusCode: statusCode, code: code, result: result, message: message });
+            else {
+                message = type !== 'error' ? '错误响应，未获取预期数据' : message;
+            }
+            Object.assign(resData, { code: code, message: message, result: result });
         }
         else {
-            // 2. 后端返回的数据不规范，将 statusCode 定义为 500
-            statusCode = 502;
-            Object.assign(res, { statusCode: statusCode, message: "\u54CD\u5E94\u9519\u8BEF\uFF0C\u672A\u83B7\u53D6\u9884\u671F\u6570\u636E(" + statusCode + ")" });
+            // 2. 无数据返回 将 statusCode 定义为 502
+            res.status = 502;
+            Object.assign(resData, { message: "\u54CD\u5E94\u9519\u8BEF\uFF0C\u672A\u83B7\u53D6\u9884\u671F\u6570\u636E(" + res.status + ")" });
         }
+        res.data = resData;
         return res;
     };
-    // 调用axios请求方法 并 返回统一的数据格式
-    Axios.prototype.callRequest = function (url, data, config) {
+    // 调用axios请求，无论成功失败，都将返回统一的数据格式
+    Axios.prototype.doRequest = function (url, data, config) {
         return __awaiter(this, void 0, Promise, function () {
-            var res, post, m, method, d, query, response, error_1;
+            var res, post, mArrs, confMethod, method, query, response, error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        res = this.getResultData();
+                        res = this.getResponseData();
                         post = ['post', 'put', 'patch'];
-                        m = post.concat(['get', 'delete', 'head', 'options']);
-                        method = m.includes(config.method) ? TRequestConfigMethod[config.method.toUpperCase()] : TRequestConfigMethod.GET;
-                        d = post.includes(method) ? { data: data } : { params: data };
-                        query = Object.assign(d, config.option || {});
+                        mArrs = post.concat(['get', 'delete', 'head', 'options']);
+                        confMethod = (config === null || config === void 0 ? void 0 : config.method) || 'get';
+                        method = mArrs.includes(confMethod) ? confMethod : 'get';
+                        query = post.includes(method) ? { data: data } : { params: data };
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, this.http(__assign({ url: url, method: method }, query))];
+                        return [4 /*yield*/, this.http(__assign({ url: url, method: method }, Object.assign(query, config.option)))];
                     case 2:
                         response = _a.sent();
-                        return [2 /*return*/, Object.assign(res, response.data)];
+                        res.data = response.data;
+                        res.headers = response.headers;
+                        res.status = response.status;
+                        res.statusText = response.statusText;
+                        res.config = response.config;
+                        return [2 /*return*/, res];
                     case 3:
                         error_1 = _a.sent();
                         return [2 /*return*/, error_1];
@@ -4434,26 +4449,27 @@ var Axios$1 = /** @class */ (function () {
             });
         });
     };
-    // 发起请求
     /**
-     * 发起ajax请求
+     * 执行ajax请求, 都将返回统一格式的结果, result.code = 0 代表请求成功，为其他数时则表示不成功。
      * @param url 请求的url地址
      * @param data 请求体参数
      * @param config 请求参数配置
      */
-    Axios.prototype.request = function (url, data, config) {
+    Axios.prototype.ajax = function (url, data, config) {
         return __awaiter(this, void 0, Promise, function () {
-            var conf, result, success;
+            var conf, result;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         conf = Object.assign({ method: 'get', option: {} }, config);
-                        return [4 /*yield*/, this.callRequest(url, data, conf)];
+                        return [4 /*yield*/, this.doRequest(url, data, conf)];
                     case 1:
                         result = _a.sent();
-                        success = this.init.customCode.success.includes(result.code);
-                        if (success) {
-                            result.code = 0;
+                        if (this.init.successCode.includes(result.data.code)) {
+                            result.data.code = 0;
+                        }
+                        else {
+                            result.data.message = result.data.message || "\u6570\u636E\u83B7\u53D6\u5931\u8D25\u4E86\uFF08" + result.data.code + "\uFF09";
                         }
                         return [2 /*return*/, result];
                 }
