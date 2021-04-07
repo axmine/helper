@@ -33,11 +33,11 @@ export class Storage {
         res = json.v
         // 如果当前存在引擎为localStorage，并且当时时间大于过期时间，则移除数据
         if (this.type === 'localStorage' && now > json.t) {
-          res = ''
+          res = '';
           this.remove(key);
         }
       } catch {
-        console.error('数据错误')
+        console.error('数据错误');
       }
     }
     return res;
