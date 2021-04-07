@@ -2,7 +2,7 @@ class Cookie {
   private cookieEnabled: boolean;
 
   constructor() {
-    this.cookieEnabled = window && window.navigator.cookieEnabled
+    this.cookieEnabled = window && window.navigator.cookieEnabled;
   }
 
   /**
@@ -19,7 +19,7 @@ class Cookie {
       exdate.setDate(exdate.getDate() + expireDays);
       const expires = expireDays ? `;expires=${exdate.toUTCString()}` : '';
       document.cookie = `${key}=${escape(value)}${expires}`;
-      b = this.get(key) === value
+      b = this.get(key) === value;
     }
     return b;
   }
@@ -37,10 +37,10 @@ class Cookie {
         s = s + key.length + 1;
         let e = document.cookie.indexOf(';', s);
         if (e === -1) { e = document.cookie.length }
-        res = unescape(document.cookie.substring(s, e))
+        res = unescape(document.cookie.substring(s, e));
       }
     }
-    return res
+    return res;
   }
 
   /**
@@ -56,4 +56,4 @@ class Cookie {
     return b;
   }
 }
-export const cookie = new Cookie()
+export const cookie = new Cookie();
