@@ -11,12 +11,12 @@ let year = new Date().getFullYear(),
     version = pkg.version;
 
 let bannerText = `@axmine/helper v${version}
-(c) 2019-${year} yocss https://github.com/yocss/helper.git
+(c) 2019-${year} axmine https://github.com/axmine/helper.git
 License: MIT
 Released on: Aug 21, 2020`;
 
 let config = {
-  input: 'src/index.ts',
+  input: './index.ts',
   output: {
     name:'helper',
     file: 'dist/helper.js',
@@ -38,9 +38,9 @@ let config = {
 
 let [min, es, cjs] = [merge({}, config), merge({}, config), merge({}, config)];
 
-min.output.file = 'dist/helper.min.js';
+min.output.file = 'dist/helper.js';
 min.output.compact = true
-// min.plugins.unshift(uglify());
+min.plugins.unshift(uglify());
 
 es.output.file = 'dist/helper.es.js';
 es.output.format = 'es';
