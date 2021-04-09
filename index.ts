@@ -4,11 +4,10 @@ import { random } from './lib/random';
 import { Storage } from './lib/storage';
 import date from './lib/date'
 
-// export default { cookie, random, getType, Storage }
 export {
   cookie,
   random,
   getType,
   date,
-  Storage
+  Storage,
 }
