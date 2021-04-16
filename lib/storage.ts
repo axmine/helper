@@ -27,28 +27,24 @@ export class Storage {
     let res = '';
     if (this.enableStorage) {
       try {
-        const v = window[this.type].getItem(key) || `{"v":"","t":0}`;
+        const v = window[this.type].getItem(key) || '{"v":"","t":0}';
         const json = JSON.parse(v);
-        const now = new Date().getTime();
+        const now = (new Date()).getTime();
         res = json.v
         // 如果当前存在引擎为localStorage，并且当时时间大于过期时间，则移除数据
-        if (this.type === 'localStorage' && now > json.t) {
+        if (this.type === 'localStorage' && (now > json.t)) {
           res = '';
           this.remove(key);
         }
-      } catch {
+      } catch (err) {
+        console.error(err);
         console.error('数据错误');
       }
     }
     return res;
   }
 
-  remove (key: string): boolean {
-    let bool = this.enableStorage;
-    if (bool) {
-      window[this.type].removeItem(key);
-      bool = this.get(key) === '';
-    }
-    return bool;
+  remove (key: string): void {
+    this.enableStorage && window[this.type].removeItem(key);
   }
 }
