@@ -1,5 +1,5 @@
 /**
- * @axmine/helper v3.0.1
+ * @axmine/helper v3.0.2
  * (c) 2019-2021 axmine https://github.com/axmine/helper.git
  * License: MIT
  * Released on: Aug 21, 2020
@@ -122,29 +122,25 @@ var Storage = /** @class */ (function () {
         var res = '';
         if (this.enableStorage) {
             try {
-                var v = window[this.type].getItem(key) || "{\"v\":\"\",\"t\":0}";
+                var v = window[this.type].getItem(key) || '{"v":"","t":0}';
                 var json = JSON.parse(v);
-                var now = new Date().getTime();
+                var now = (new Date()).getTime();
                 res = json.v;
                 // 如果当前存在引擎为localStorage，并且当时时间大于过期时间，则移除数据
-                if (this.type === 'localStorage' && now > json.t) {
+                if (this.type === 'localStorage' && (now > json.t)) {
                     res = '';
                     this.remove(key);
                 }
             }
-            catch (_a) {
+            catch (err) {
+                console.error(err);
                 console.error('数据错误');
             }
         }
         return res;
     };
     Storage.prototype.remove = function (key) {
-        var bool = this.enableStorage;
-        if (bool) {
-            window[this.type].removeItem(key);
-            bool = this.get(key) === '';
-        }
-        return bool;
+        this.enableStorage && window[this.type].removeItem(key);
     };
     return Storage;
 }());
