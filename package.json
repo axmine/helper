@@ -1,6 +1,6 @@
 {
   "name": "@axmine/helper",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Just for my personal vue3.x project, so don't use it in your production project.",
   "main": "dist/helper.js",
   "scripts": {
